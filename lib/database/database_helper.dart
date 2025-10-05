@@ -18,8 +18,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'myday_tracker.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // ⭐ 버전을 2로 올림
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // ⭐ 추가
     );
   }
 
@@ -54,8 +55,49 @@ class DatabaseHelper {
       )
     ''');
 
+    // Goals 테이블 ⭐ 추가
+    await db.execute('''
+      CREATE TABLE goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        category_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL,
+        target_value REAL NOT NULL,
+        unit TEXT,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+      )
+    ''');
+
     // 기본 카테고리 삽입
     await _insertDefaultCategories(db);
+  }
+
+  // ⭐ 업그레이드 함수 추가
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // version 1 → 2: goals 테이블 추가
+      await db.execute('''
+        CREATE TABLE goals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          category_id INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          type TEXT NOT NULL,
+          target_value REAL NOT NULL,
+          unit TEXT,
+          start_date TEXT NOT NULL,
+          end_date TEXT NOT NULL,
+          is_active INTEGER DEFAULT 1,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   Future<void> _insertDefaultCategories(Database db) async {

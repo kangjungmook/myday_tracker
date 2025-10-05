@@ -39,15 +39,16 @@ class ActivityRepository {
     return await db.delete('activities', where: 'id = ?', whereArgs: [id]);
   }
 
-  // 모든 활동 조회 (테스트용)
+  // 모든 활동 조회
   Future<List<Activity>> getAllActivities(int userId) async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'activities',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-      orderBy: 'date DESC, time DESC',
-    );
-    return List.generate(maps.length, (i) => Activity.fromMap(maps[i]));
-  }
+  final db = await _dbHelper.database;
+  final List<Map<String, dynamic>> maps = await db.query(
+    'activities',
+    where: 'user_id = ?',
+    whereArgs: [userId],
+    orderBy: 'date DESC, time DESC',
+  );
+  return List.generate(maps.length, (i) => Activity.fromMap(maps[i]));
+}
+
 }
